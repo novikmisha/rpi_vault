@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    volumes:
+      - './data/vaultwarden:/data'
+    restart: on-failure
+    networks:
+      - proxy
+    environment:
+      WEBSOCKET_ENABLED: 'true'
+      SIGNUPS_ALLOWED: 'false'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.vault.rule=Host(`vault.local`)"
+      - "traefik.http.routers.vault.service=vault"
+      - "traefik.http.services.vault.loadbalancer.server.port=80"
+      - "traefik.http.routers.vault-websocket.rule=Host(`vault.local`) && Path(`/notifications/hub`)"
+      - "traefik.http.routers.vault-websocket.service=vault-websocket"
+      - "traefik.http.services.vault-websocket.loadbalancer.server.port=3012"
+
+networks:
+  proxy:
+    external: true
